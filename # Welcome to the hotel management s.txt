@@ -1,0 +1,551 @@
+# HOTEL MANAGEMENT SYSTEM
+
+import pandas as pd
+from datetime import datetime
+
+#INITIAL DATA
+
+home = [
+    "register",
+    "booking",
+    "order food",
+    "check-in and check-out",
+    "search customer",
+    "cancel booking"
+]
+
+customers = {
+    "101": {
+        "name": "Tony Stark",
+        "phone": "9876543210",
+        "email": "tony.stark@gmail.com",
+        "address": "Vancouver, Canada"
+    },
+    "102": {
+        "name": "Tom Holland",
+        "phone": "9123456780",
+        "email": "tom.holland@gmail.com",
+        "address": "Connecticut, USA"
+    },
+    "103": {
+        "name": "Zendaya Coleman",
+        "phone": "9988776655",
+        "email": "zendaya.coleman@gmail.com",
+        "address": "Arizona, USA"
+    },
+    "104": {
+        "name": "Sadie Sink",
+        "phone": "1228345678",
+        "email": "sadie.sink@gmail.com",
+        "address": "Missouri, USA"
+    },
+    "105": {
+        "name": "Mark Ruffalo",
+        "phone": "2345098675",
+        "email": "mark.ruffalo@gmail.com",
+        "address": "New York, USA"
+    },
+    "106": {
+        "name": "Scarlet Johansson",
+        "phone": "0987632146",
+        "email": "scarlet.johansson@gmail.com",
+        "address": "Washington DC, USA"
+    },
+    "107": {
+        "name": "Chris Evans",
+        "phone": "9204773721",
+        "email": "chris.evans@gmail.com",
+        "address": "Ottawa, Canada"
+    },
+    "108": {
+        "name": "Andrew Garfield",
+        "phone": "1234789064",
+        "email": "andrew.garfield@gmail.com",
+        "address": "Los Angeles, USA"
+    },
+    "109": {
+        "name": "Tobey Maguire",
+        "phone": "3460981245",
+        "email": "tobey.maguire@gmail.com",
+        "address": "Nevada, USA"
+    }
+}
+
+rooms = {
+    101: {"type": "Single", "price_per_night": 2500, "available": True},
+    102: {"type": "Single", "price_per_night": 2500, "available": True},
+    103: {"type": "Double", "price_per_night": 4000, "available": True},
+    104: {"type": "Double", "price_per_night": 4000, "available": True},
+    105: {"type": "Deluxe", "price_per_night": 5500, "available": True},
+    106: {"type": "Deluxe", "price_per_night": 5500, "available": True},
+    107: {"type": "Suite", "price_per_night": 8000, "available": True},
+    108: {"type": "Suite", "price_per_night": 8000, "available": True},
+    109: {"type": "Family", "price_per_night": 6500, "available": True},
+    110: {"type": "Family", "price_per_night": 6500, "available": True}
+}
+
+bookings = {}
+guests = {}
+food_bills = {}
+
+#FUNCTIONS
+
+def display_rooms():
+
+    df = pd.DataFrame.from_dict(rooms, orient="index")
+    df.index.name = "Room Number"
+
+    print("\n===== HOTEL ROOMS =====")
+    print(df.to_string())
+
+    available = sum(r["available"] for r in rooms.values())
+
+    print("\nAvailable rooms:", available)
+    print("Booked/occupied rooms:", len(rooms) - available)
+
+
+def display_customers():
+
+    df = pd.DataFrame.from_dict(customers, orient="index")
+    df.index.name = "Customer ID"
+
+    print("\n===== CUSTOMER RECORDS =====")
+    print(df.to_string())
+
+
+#CUSTOMER REGISTRATION
+
+def register():
+
+    customer_id = input("Enter customer ID: ").strip()
+
+    if customer_id in customers:
+        print("Customer ID already exists.")
+        return
+
+    name = input("Enter customer name: ")
+    phone = input("Enter phone number: ")
+    email = input("Enter email: ")
+    address = input("Enter address: ")
+
+    customers[customer_id] = {
+        "name": name,
+        "phone": phone,
+        "email": email,
+        "address": address
+    }
+
+    print("\nRegistration successful!")
+
+    display_customers()
+
+#  ROOM BOOKING
+
+def booking():
+
+    while True:
+
+        print("\n===== BOOKING MENU =====")
+        print("1. Book room")
+        print("2. Show rooms")
+        print("3. Exit")
+
+        action = input("Enter action: ").strip().lower()
+
+        if action in ["1", "book"]:
+
+            try:
+                room_no = int(input("Enter room number: "))
+
+                if room_no not in rooms:
+                    print("Room does not exist.")
+
+                elif not rooms[room_no]["available"]:
+                    print("Room is already booked or occupied.")
+
+                else:
+                    customer_id = input(
+                        "Enter customer ID: "
+                    ).strip()
+
+                    if customer_id not in customers:
+                        print("Customer not registered.")
+
+                    else:
+                        rooms[room_no]["available"] = False
+                        bookings[room_no] = customer_id
+
+                        print("\nRoom booked successfully!")
+
+                        print(
+                            "Customer:",
+                            customers[customer_id]["name"]
+                        )
+
+                        print("Room number:", room_no)
+
+            except ValueError:
+                print("Please enter a valid room number.")
+
+        elif action in ["2", "show"]:
+            display_rooms()
+
+        elif action in ["3", "exit"]:
+            break
+
+        else:
+            print("Invalid action.")
+
+
+# CHECK-IN 
+
+def check_in():
+
+    print("\n===== CHECK-IN =====")
+
+    try:
+
+        room_no = int(input("Enter room number: "))
+
+        if room_no not in rooms:
+            print("Invalid room number.")
+            return
+
+        if room_no in guests:
+            print("Guest is already checked into this room.")
+            return
+
+       
+        if room_no in bookings:
+
+            customer_id = bookings[room_no]
+            customer = customers[customer_id]
+
+            print("Booking found for:", customer["name"])
+
+            confirm = input("Confirm check-in? (yes/no): ").lower()
+
+            if confirm != "yes":
+                print("Check-in cancelled.")
+                return
+
+            name = customer["name"]
+            phone = customer["phone"]
+
+        else:
+
+            if not rooms[room_no]["available"]:
+                print("Room is unavailable.")
+                return
+
+            name = input("Enter guest name: ")
+            phone = input("Enter phone number: ")
+
+        check_in_str = input(
+            "Enter check-in date (YYYY-MM-DD): "
+        )
+
+        check_in_date = datetime.strptime(
+            check_in_str, "%Y-%m-%d"
+        )
+
+        rooms[room_no]["available"] = False
+
+        guests[room_no] = {
+            "name": name,
+            "phone": phone,
+            "check_in_date": check_in_date
+        }
+
+        food_bills[room_no] = 0
+
+        print("\nCheck-in successful!")
+        print("Guest Name:", name)
+        print("Room Number:", room_no)
+
+    except ValueError:
+        print("Invalid input. Please check the room number and date.")
+
+
+#  FOOD ORDERING 
+
+def order_food():
+
+    food_menu = {
+        1: ("Tea", 80),
+        2: ("Coffee", 100),
+        3: ("Sandwich", 150),
+        4: ("Burger", 250),
+        5: ("Pizza", 500),
+        6: ("Pasta", 300),
+        7: ("Thali", 350),
+        8: ("Juice", 120)
+    }
+
+    try:
+        room_no = int(input("Enter your room number: "))
+
+       
+        if room_no not in bookings and room_no not in guests:
+            print("No booking or guest found for this room.")
+            return
+
+        
+        if room_no in guests:
+            guest_name = guests[room_no]["name"]
+        else:
+            customer_id = bookings[room_no]
+            guest_name = customers[customer_id]["name"]
+
+        print("\nWelcome,", guest_name)
+
+        print("\n===== FOOD MENU =====")
+
+        for number, (food, price) in food_menu.items():
+            print(f"{number}. {food} - Rs. {price}")
+
+        
+        if room_no not in food_bills:
+            food_bills[room_no] = 0
+
+        while True:
+            try:
+                choice = int(input(
+                    "\nEnter choice (1-8), or 0 to finish: "
+                ))
+
+                if choice == 0:
+                    break
+
+                if choice not in food_menu:
+                    print("Invalid choice! Select 1-8.")
+                    continue
+
+                quantity = int(input("Enter quantity: "))
+
+                if quantity <= 0:
+                    print("Quantity must be positive.")
+                    continue
+
+                food, price = food_menu[choice]
+
+                amount = price * quantity
+
+                food_bills[room_no] += amount
+
+                print(f"{food} x {quantity} = Rs. {amount}")
+                print("Food bill added successfully!")
+
+            except ValueError:
+                print("Please enter valid numbers.")
+
+        print("\n===== FOOD BILL =====")
+        print("Guest Name:", guest_name)
+        print("Room Number:", room_no)
+        print("Total Food Bill: Rs.", food_bills[room_no])
+
+    except ValueError:
+        print("Please enter a valid room number.")
+
+# CHECK-OUT 
+
+def check_out():
+
+    print("\n===== CHECK-OUT AND BILLING =====")
+
+    try:
+
+        room_no = int(input("Enter room number: "))
+
+        if room_no not in rooms:
+            print("Invalid room number.")
+            return
+
+        if room_no not in guests:
+            print("No guest checked into this room.")
+            return
+
+        check_out_str = input(
+            "Enter check-out date (YYYY-MM-DD): "
+        )
+
+        check_out_date = datetime.strptime(
+            check_out_str, "%Y-%m-%d"
+        )
+
+        guest_info = guests[room_no]
+        check_in_date = guest_info["check_in_date"]
+
+        if check_out_date < check_in_date:
+            print("Invalid check-out date.")
+            return
+
+        duration = (check_out_date - check_in_date).days
+
+        if duration == 0:
+            duration = 1
+
+
+        price_per_night = rooms[room_no]["price_per_night"]
+
+        room_bill = duration * price_per_night
+
+
+        food_bill = food_bills.get(room_no, 0)
+
+
+        total_bill = room_bill + food_bill
+
+
+        print("\n========== HOTEL FINAL BILL ==========")
+
+        print("Guest Name:", guest_info["name"])
+        print("Phone:", guest_info["phone"])
+        print("Room Number:", room_no)
+
+        print("\nCheck-in Date:",
+              check_in_date.strftime("%Y-%m-%d"))
+
+        print("Check-out Date:",
+              check_out_date.strftime("%Y-%m-%d"))
+
+        print("\nNights Stayed:", duration)
+
+        print("\nRoom Charges: Rs.", room_bill)
+        print("Food Charges: Rs.", food_bill)
+
+        print("--------------------------------------")
+
+        print("TOTAL BILL: Rs.", total_bill)
+
+        print("======================================")
+
+
+        rooms[room_no]["available"] = True
+
+        guests.pop(room_no, None)
+        food_bills.pop(room_no, None)
+        bookings.pop(room_no, None)
+
+        print("\nCheck-out completed successfully.")
+
+    except ValueError:
+        print("Invalid room number or date.")
+
+
+# SEARCH CUSTOMER
+
+def search_customer():
+
+    customer_id = input(
+        "Enter customer ID to search: "
+    ).strip()
+
+    if customer_id in customers:
+
+        print("\n===== CUSTOMER DETAILS =====")
+
+        for key, value in customers[customer_id].items():
+            print(f"{key.title()}: {value}")
+
+    else:
+        print("Customer not found.")
+
+
+#  CANCEL BOOKING
+
+def cancel_booking():
+
+    try:
+
+        room_no = int(
+            input("Enter room number to cancel booking: ")
+        )
+
+        if room_no not in rooms:
+            print("Invalid room number.")
+
+        elif room_no not in bookings:
+            print("No booking found for this room.")
+
+        elif room_no in guests:
+            print("Cannot cancel. Guest has already checked in.")
+
+        else:
+
+            rooms[room_no]["available"] = True
+
+            bookings.pop(room_no)
+
+            print(
+                f"Booking for room {room_no} cancelled successfully."
+            )
+
+    except ValueError:
+        print("Please enter a valid room number.")
+
+
+
+while True:
+
+    print("\n========================================")
+    print("     HOTEL MANAGEMENT SYSTEM")
+    print("========================================")
+
+    print("\nAVAILABLE SERVICES:")
+
+    for i, item in enumerate(home, 1):
+        print(f"{i}. {item}")
+
+    print("7. Exit")
+
+    service = input("\nEnter preferred service: ").strip().lower()
+
+    if service in ["1", "register"]:
+        register()
+
+    elif service in ["2", "booking"]:
+        booking()
+
+    elif service in ["3", "order food"]:
+        order_food()
+
+    elif service in ["4", "check-in and check-out"]:
+
+        while True:
+
+            print("\n===== CHECK-IN/CHECK-OUT MENU =====")
+            print("1. View Rooms")
+            print("2. Check-In")
+            print("3. Check-Out")
+            print("4. Back to Main Menu")
+
+            choice = input("Select option: ")
+
+            if choice == "1":
+                display_rooms()
+
+            elif choice == "2":
+                check_in()
+
+            elif choice == "3":
+                check_out()
+
+            elif choice == "4":
+                break
+
+            else:
+                print("Invalid choice.")
+
+    elif service in ["5", "search customer"]:
+        search_customer()
+
+    elif service in ["6", "cancel booking"]:
+        cancel_booking()
+
+    elif service in ["7", "exit"]:
+        print("\nThank you for using our Hotel Management System!")
+        break
+
+    else:
+        print("Invalid service. Please try again.")
